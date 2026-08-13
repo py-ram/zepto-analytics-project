@@ -1,89 +1,105 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import uvicorn
-import os
-import sys
 import socket
 
-# Create FastAPI app
+
 app = FastAPI(
     title="Zepto Support Assistant",
-    description="RAG-based support assistant for Zepto policies",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    description="Support assistant for Zepto policy questions",
+    version="1.0.0"
 )
 
-# Global variables
 model = None
 collection = None
 graph = None
 
+
 @app.on_event("startup")
 async def startup_event():
-    """Load models at startup"""
+
     global model, collection, graph
-    
-    print("\nLoading models...")
+
+    print("\nLoading support documents...")
+
     try:
         from embedding import load_and_embed_documents
         from graph import build_graph
-        
+
         model, collection = load_and_embed_documents()
         graph = build_graph(collection, model)
-        print("✓ Models loaded successfully")
+
+        print("Support assistant loaded.")
+
     except Exception as e:
-        print(f"⚠ Warning: Could not load models: {e}")
-        print("API will start but /ask endpoint may not work")
+        print("Could not load support assistant:", e)
+
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., min_length=1, description="Your question")
-    
-    class Config:
-        schema_extra = {
-            "example": {"query": "What is the delivery fee?"}
-        }
+
+    query: str = Field(
+        ...,
+        min_length=1,
+        description="Your question"
+    )
+
 
 class AnswerSchema(BaseModel):
+
     answer: str
-    sources: list = []
+    sources: list[str] = []
     confidence: float = 0.0
 
+
 class HealthResponse(BaseModel):
+
     status: str
     message: str
 
-@app.get("/", tags=["General"])
+
+@app.get("/")
 async def root():
-    """Root endpoint"""
+
     return {
         "service": "Zepto Support Assistant",
         "status": "running",
         "docs": "/docs"
     }
 
-@app.get("/health", response_model=HealthResponse, tags=["General"])
+
+@app.get("/health", response_model=HealthResponse)
 async def health():
-    """Health check"""
+
+    if graph is not None:
+        return HealthResponse(
+            status="ok",
+            message="Support assistant is ready"
+        )
+
     return HealthResponse(
-        status="ok" if graph else "degraded",
-        message="Service is healthy" if graph else "Model not loaded"
+        status="degraded",
+        message="Support assistant is not loaded"
     )
 
-@app.get("/test", tags=["General"])
-async def test():
-    """Test endpoint"""
-    return {"message": "API is working!"}
 
-@app.post("/ask", response_model=AnswerSchema, tags=["Q&A"])
+@app.get("/test")
+async def test():
+
+    return {"message": "API is working"}
+
+
+@app.post("/ask", response_model=AnswerSchema)
 async def ask(request: QueryRequest):
-    """Ask a question"""
-    
+
     if graph is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-    
+        raise HTTPException(
+            status_code=503,
+            detail="Support assistant is not loaded"
+        )
+
     try:
-        initial_state = {
+
+        state = {
             "query": request.query,
             "intent": "",
             "sources": [],
@@ -91,40 +107,49 @@ async def ask(request: QueryRequest):
             "confidence": 0.0,
             "retrieved_chunks": []
         }
-        
-        result = graph.invoke(initial_state)
-        
+
+        result = graph.invoke(state)
+
         return AnswerSchema(
-            answer=result['answer'],
-            sources=result['sources'],
-            confidence=result['confidence']
+            answer=result["answer"],
+            sources=result["sources"],
+            confidence=result["confidence"]
         )
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 
 def find_available_port():
-    """Find an available port"""
-    for port in [7860, 7861, 7862, 8000, 8080, 5000]:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    for port in [7860, 7861, 7862, 8000, 8080]:
+
+        sock = socket.socket()
+
         try:
-            sock.bind(('127.0.0.1', port))
+            sock.bind(("127.0.0.1", port))
             sock.close()
             return port
+
         except OSError:
-            continue
+            sock.close()
+
     return 7860
 
+
 if __name__ == "__main__":
+
     port = find_available_port()
-    
-    print("\n" + "="*50)
-    print("Zepto Support Assistant")
-    print("="*50)
-    print(f"\nServer starting on: http://127.0.0.1:{port}")
-    print(f"Swagger UI: http://127.0.0.1:{port}/docs")
-    print(f"ReDoc: http://127.0.0.1:{port}/redoc")
-    print("\nPress Ctrl+C to stop")
-    print("="*50 + "\n")
-    
-    # Use 127.0.0.1 instead of 0.0.0.0 to avoid getaddrinfo issues
-    uvicorn.run(app, host="127.0.0.1", port=port)
+
+    print(f"\nStarting server on http://127.0.0.1:{port}")
+    print(f"API docs: http://127.0.0.1:{port}/docs")
+
+    uvicorn.run(
+        app,
+        host="127.0.0.1",
+        port=port
+    )
