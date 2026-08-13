@@ -29,6 +29,14 @@ It includes:
 - Family size analysis
 - Standardization of age and fare
 
+
+Important: your output files are being saved to the current directory
+**
+For example:
+
+```python
+plt.savefig("univariate_plots.png")
+
 ### `02_modeling.py`
 
 Builds classification models to predict passenger survival.
