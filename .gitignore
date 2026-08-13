@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+
+# Jupyter
+.ipynb_checkpoints/
+
+
+# Environment files
+.env
+
+
+# Generated databases / vector stores
+*.sqlite
+*.sqlite3
+db/
+chroma_db/
+
+
+# Generated model files
+*.joblib
+*.pkl
+
+
+# Generated analysis output
+*.png
+
+
+# OS files
+.DS_Store
+Thumbs.db
+But one exception
+
+If your assignment expects the generated .png charts or best_pipeline.joblib to be submitted, don't ignore those files.
+
+For example:
+
+*.png
+
+would prevent your EDA/modeling results from being committed.
+
+So for your assignment, I'd actually use:
+
+# Python
+__pycache__/
+*.py[cod]
+
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+
+# Jupyter
+.ipynb_checkpoints/
+
+
+# Environment files
+.env
+
+
+# Generated databases
+*.sqlite
+*.sqlite3
+db/
+chroma_db/
+
+
+# OS files
+.DS_Store
+Thumbs.db
+
+and keep your assignment outputs tracked.
