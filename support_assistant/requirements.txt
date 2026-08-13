@@ -1,27 +1,11 @@
-# Support Assistant Requirements
-# Pin versions for compatibility
-
-# Core dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.4.2
 
-# ML/Embedding dependencies
-# Use specific compatible versions
 sentence-transformers==2.2.2
 huggingface-hub==0.16.4
 transformers==4.34.0
 torch==2.0.1
-tokenizers==0.14.1
 
-# Vector database
-chromadb==0.4.15
-
-# LangGraph
-langgraph==0.0.20
-langchain==0.0.340
-
-# Utilities
 numpy==1.24.3
-pandas==2.0.3
-python-multipart==0.0.6
+requests==2.31.0
