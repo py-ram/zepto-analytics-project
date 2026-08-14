@@ -18,7 +18,7 @@ bash
 pip install -r requirements.txt
 
 
-##1. Data Pipeline
+**##1. Data Pipeline**
 
 #The data pipeline collects book information from Books to Scrape, cleans the data and stores it in a SQLite database.
 
@@ -41,9 +41,9 @@ scrape_books.py - Scrapes book information
 database_setup.py - Cleans the data and creates the SQLite database
 queries.py - Runs SQL queries and compares SQL results with Pandas
 
-##2. Analytics
+**##2. Analytics**
 
-#The analytics module uses the Titanic dataset for exploratory analysis and classification modelling.
+The analytics module uses the Titanic dataset for exploratory analysis and classification modelling.
 
 The analysis includes:
 
@@ -71,8 +71,7 @@ python 02_modeling.py
 
 The analysis generates cleaned data, model results and visualizations.
 
-##3. Support Assistant
-
+**3. Support Assistant**
 T#he support assistant provides a simple API for answering questions related to Zepto policy documents.
 
 The current implementation uses:
@@ -107,18 +106,6 @@ python test_assistant.py
 Test the API:
 
 python test_api.py
-Project Structure
-
-zepto-analytics-project/
-│
-├── README.md
-├── requirements.txt
-├── .gitignore
-│
-├── data_pipeline/
-│
-├── analytics/
-│
 └── support_assistant/
 
 
