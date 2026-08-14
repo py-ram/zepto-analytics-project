@@ -192,7 +192,7 @@ def save_decision_tree(tree_model, preprocessor):
 
     plot_tree(
         tree_model,
-        feature_names=feature_names,
+        feature_names=list(feature_names),
         class_names=["Not Survived", "Survived"],
         filled=True,
         max_depth=5,
@@ -311,15 +311,16 @@ def run_models():
         index=False
     )
 
-    # Save the best model (Random Forest) for future use
-    best_model_name = comparison.loc[
-    comparison["ROC AUC"].idxmax(),
-    "Model"
-]
-    best_model = models[best_model_name]
-    joblib.dump(best_model, "best_model.pkl")
-    return comparison
+    # Save the Best model   pipeline
+    joblib.dump(
+        models["Random Forest"],    
 
+        "best_pipeline.joblib"
+    )
+
+    print("\nSaved Best model to best_pipeline.joblib")
+
+    return comparison
 
 
 if __name__ == "__main__":
