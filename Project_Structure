@@ -1,0 +1,11 @@
+zepto-analytics-project/
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+│
+├── data_pipeline/
+│
+├── analytics/
+│
+└── support_assistant/
