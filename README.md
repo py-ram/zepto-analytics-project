@@ -20,26 +20,26 @@ pip install -r requirements.txt
 
 **1. Data Pipeline**
 
-#The data pipeline collects book information from Books to Scrape, cleans the data and stores it in a SQLite database.
+The data pipeline collects book information from Books to Scrape, cleans the data and stores it in a SQLite database.
 
 Go to the module:
 
-cd data_pipeline
+/cd data_pipeline
 
 Run:
 
-python scrape_books.py
-python database_setup.py
-python queries.py
+/python scrape_books.py
+/python database_setup.py
+/python queries.py
 
 
 The pipeline uses the project-defined conversion rate:
 
-1 GBP = 105.50 INR
-Main files
-scrape_books.py - Scrapes book information
-database_setup.py - Cleans the data and creates the SQLite database
-queries.py - Runs SQL queries and compares SQL results with Pandas
+**1 GBP = 105.50 INR
+**Main files
+/scrape_books.py - Scrapes book information
+/database_setup.py - Cleans the data and creates the SQLite database
+/queries.py - Runs SQL queries and compares SQL results with Pandas
 
 **2. Analytics**
 
@@ -47,7 +47,7 @@ The analytics module uses the Titanic dataset for exploratory analysis and class
 
 The analysis includes:
 
-Data cleaning
+**Data cleaning**
 Missing value analysis
 Univariate analysis
 Bivariate analysis
@@ -62,12 +62,12 @@ Model evaluation
 
 Go to the module:
 
-cd analytics
+/cd analytics
 
 Run the analysis:
 
-python 01_eda.py
-python 02_modeling.py
+/python 01_eda.py
+/python 02_modeling.py
 
 The analysis generates cleaned data, model results and visualizations.
 
