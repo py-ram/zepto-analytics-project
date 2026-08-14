@@ -1,42 +1,41 @@
 import requests
 
 
-BASE_URL = "http://localhost:7860"
-
-
-def ask_question(query):
-
-    response = requests.post(
-        f"{BASE_URL}/ask",
-        json={"query": query}
-    )
-
-    print(f"\nQuery: {query}")
-    print("Status:", response.status_code)
-    print("Response:", response.json())
+BASE_URL = "http://127.0.0.1:7860"
 
 
 def test_api():
 
-    response = requests.get(f"{BASE_URL}/")
+    response = requests.get(
+        f"{BASE_URL}/health"
+    )
 
-    print("Root endpoint:", response.status_code)
-    print(response.json())
-
-    response = requests.get(f"{BASE_URL}/health")
-
-    print("\nHealth endpoint:", response.status_code)
+    print("Health:")
+    print(response.status_code)
     print(response.json())
 
     questions = [
-        "What is the delivery fee for small orders?",
-        "What is the weather today?",
-        "How do I return a damaged item?",
-        "Tell me about Zepto Pass membership"
+        "What is the delivery fee for orders below INR 149?",
+        "What is the weather today?"
     ]
 
     for question in questions:
-        ask_question(question)
+
+        response = requests.post(
+            f"{BASE_URL}/ask",
+            json={
+                "query": question
+            }
+        )
+
+        print("\nQuestion:")
+        print(question)
+
+        print("\nStatus:")
+        print(response.status_code)
+
+        print("\nJSON response:")
+        print(response.json())
 
 
 if __name__ == "__main__":

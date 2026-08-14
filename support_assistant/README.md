@@ -1,18 +1,46 @@
-# Zepto Analytics Project
+# Support Assistant
 
-This repository contains three modules for Zepto's data science needs:
+## Overview
 
-1. **Data Pipeline** (`/data_pipeline`) - Web scraping, data cleaning and SQLite database management
-2. **Analytics** (`/analytics`) - Exploratory data analysis and predictive modelling
-3. **Support Assistant** (`/support_assistant`) - Retrieval-based support assistant for Zepto policy documents
+This module implements a small retrieval-based support assistant for Zepto policy questions.
 
-## Setup
+The application uses local sentence-transformer embeddings, ChromaDB for vector storage, LangGraph for query routing and FastAPI for the API layer.
 
-### Requirements
+The default execution mode uses deterministic mock responses, so no LLM API key or network access is required.
 
-The project has a root requirements file for the main dependencies. The support assistant also has its own requirements file.
+## Architecture
 
-Install the main dependencies:
-
-```bash
-pip install -r requirements.txt
+```text
+Policy Documents
+      |
+      v
+Document Loading + Chunking
+      |
+      v
+all-MiniLM-L6-v2
+      |
+      v
+ChromaDB
+      |
+      v
+LangGraph StateGraph
+      |
+      v
+classify_intent
+      |
+      +----------------------+
+      |                      |
+      v                      v
+policy_question       general_question
+      |                      |
+      v                      v
+retrieve_and_answer    direct_answer
+      |
+      v
+MOCK_LLM
+      |
+      v
+Pydantic Response
+      |
+      v
+FastAPI /ask

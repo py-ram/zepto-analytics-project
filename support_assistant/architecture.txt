@@ -1,0 +1,21 @@
+8 Policy Documents
+        ↓
+    Chunking
+        ↓
+MiniLM Embeddings
+        ↓
+     ChromaDB
+        ↓
+  LangGraph StateGraph
+        ↓
+ classify_intent
+     ↙       ↘
+policy       general
+  ↓             ↓
+retrieve      direct
+  ↓
+MOCK_LLM
+  ↓
+Pydantic response
+  ↓
+FastAPI /ask

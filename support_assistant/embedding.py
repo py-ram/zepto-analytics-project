@@ -1,87 +1,41 @@
 import os
-import sys
-import numpy as np
+from typing import List, Tuple
+
+import chromadb
+from sentence_transformers import SentenceTransformer
 
 
-def load_and_embed_documents():
+MODEL_NAME = "all-MiniLM-L6-v2"
+COLLECTION_NAME = "zepto_policies"
+DB_PATH = "db"
 
-    try:
-        from sentence_transformers import SentenceTransformer
-    except ImportError:
-        print("sentence-transformers is not installed.")
-        sys.exit(1)
 
-    print("Loading embedding model...")
+def chunk_text(text: str, chunk_size: int = 800) -> List[str]:
+    """
+    Split a document into small chunks.
 
-    try:
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-    except Exception as e:
-        print("Could not load embedding model:", e)
-        sys.exit(1)
+    The policy documents are short, so a simple fixed-size
+    chunking approach is enough for this assignment.
+    """
 
-    class SimpleVectorStore:
+    text = text.strip()
 
-        def __init__(self):
-            self.documents = []
-            self.embeddings = []
-            self.ids = []
-            self.metadatas = []
+    if not text:
+        return []
 
-        def add(self, embeddings, documents, metadatas, ids):
-            self.embeddings.extend(embeddings)
-            self.documents.extend(documents)
-            self.metadatas.extend(metadatas)
-            self.ids.extend(ids)
+    return [
+        text[i:i + chunk_size]
+        for i in range(0, len(text), chunk_size)
+    ]
 
-        def query(self, query_embeddings, n_results=3):
 
-            query = np.array(query_embeddings)
-            docs = np.array(self.embeddings)
-
-            # Calculate cosine similarity
-            similarity = np.dot(query, docs.T) / (
-                np.linalg.norm(query, axis=1)[:, None]
-                * np.linalg.norm(docs, axis=1)[None, :]
-            )
-
-            results = []
-
-            for row in similarity:
-                top_indices = np.argsort(row)[-n_results:][::-1]
-
-                results.append({
-                    "documents": [
-                        [self.documents[i] for i in top_indices]
-                    ],
-                    "ids": [
-                        [self.ids[i] for i in top_indices]
-                    ],
-                    "metadatas": [
-                        [self.metadatas[i] for i in top_indices]
-                    ],
-                    "distances": [
-                        [1 - row[i] for i in top_indices]
-                    ]
-                })
-
-            return results[0]
-
-        def count(self):
-            return len(self.documents)
-
-    collection = SimpleVectorStore()
-
-    docs_dir = "docs"
-
-    if not os.path.exists(docs_dir):
-        print(f"Documents folder not found: {docs_dir}")
-        sys.exit(1)
+def load_documents(docs_dir: str = "docs") -> Tuple[List[str], List[str], List[dict]]:
+    """Load the eight policy documents from the docs folder."""
 
     documents = []
-    metadatas = []
     ids = []
+    metadatas = []
 
-    # Load the eight policy documents
     for i in range(1, 9):
 
         doc_id = f"doc_{i:02d}"
@@ -91,43 +45,79 @@ def load_and_embed_documents():
         )
 
         if not os.path.exists(file_path):
-            print(f"Skipping missing file: {file_path}")
-            continue
+            raise FileNotFoundError(
+                f"Required document not found: {file_path}"
+            )
 
-        try:
-            with open(file_path, "r", encoding="utf-8") as file:
-                content = file.read().strip()
+        with open(file_path, "r", encoding="utf-8") as file:
+            text = file.read().strip()
 
-            documents.append(content)
-            ids.append(doc_id)
+        chunks = chunk_text(text)
+
+        for chunk_number, chunk in enumerate(chunks):
+
+            chunk_id = f"{doc_id}_chunk_{chunk_number + 1}"
+
+            documents.append(chunk)
+            ids.append(chunk_id)
+
             metadatas.append({
                 "doc_id": doc_id,
-                "source": file_path
+                "source": file_path,
+                "chunk": chunk_number + 1
             })
 
-        except Exception as e:
-            print(f"Could not read {file_path}: {e}")
+    return documents, ids, metadatas
 
-    if not documents:
-        print("No documents found.")
-        sys.exit(1)
 
-    print(f"Loaded {len(documents)} documents.")
+def load_and_embed_documents():
 
-    # Create embeddings
-    try:
-        embeddings = model.encode(documents)
-    except Exception as e:
-        print("Could not create embeddings:", e)
-        sys.exit(1)
+    print("Loading embedding model...")
 
-    collection.add(
-        embeddings=embeddings.tolist(),
-        documents=documents,
-        metadatas=metadatas,
-        ids=ids
+    model = SentenceTransformer(MODEL_NAME)
+
+    print("Loading policy documents...")
+
+    documents, ids, metadatas = load_documents()
+
+    print(f"Loaded {len(documents)} document chunks.")
+
+    print("Creating embeddings...")
+
+    embeddings = model.encode(
+        documents,
+        show_progress_bar=False
+    ).tolist()
+
+    # ChromaDB stores the vectors locally.
+    os.makedirs(DB_PATH, exist_ok=True)
+
+    client = chromadb.PersistentClient(
+        path=DB_PATH
     )
 
-    print(f"Vector store contains {collection.count()} documents.")
+    # Recreate the collection so the local database
+    # always matches the current policy documents.
+    try:
+        client.delete_collection(COLLECTION_NAME)
+    except Exception:
+        pass
+
+    collection = client.create_collection(
+        name=COLLECTION_NAME,
+        metadata={"hnsw:space": "cosine"}
+    )
+
+    collection.add(
+        ids=ids,
+        documents=documents,
+        embeddings=embeddings,
+        metadatas=metadatas
+    )
+
+    print(
+        f"ChromaDB collection '{COLLECTION_NAME}' "
+        f"contains {collection.count()} chunks."
+    )
 
     return model, collection

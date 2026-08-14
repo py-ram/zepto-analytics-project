@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import uvicorn
-import socket
 
 
 app = FastAPI(
@@ -10,29 +9,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
 model = None
 collection = None
 graph = None
-
-
-@app.on_event("startup")
-async def startup_event():
-
-    global model, collection, graph
-
-    print("\nLoading support documents...")
-
-    try:
-        from embedding import load_and_embed_documents
-        from graph import build_graph
-
-        model, collection = load_and_embed_documents()
-        graph = build_graph(collection, model)
-
-        print("Support assistant loaded.")
-
-    except Exception as e:
-        print("Could not load support assistant:", e)
 
 
 class QueryRequest(BaseModel):
@@ -40,21 +20,54 @@ class QueryRequest(BaseModel):
     query: str = Field(
         ...,
         min_length=1,
-        description="Your question"
+        description="Customer question"
     )
 
 
 class AnswerSchema(BaseModel):
 
     answer: str
-    sources: list[str] = []
-    confidence: float = 0.0
+
+    sources: list[str] = Field(
+        default_factory=list
+    )
+
+    confidence: float = Field(
+        ge=0,
+        le=1
+    )
 
 
-class HealthResponse(BaseModel):
+@app.on_event("startup")
+async def startup_event():
 
-    status: str
-    message: str
+    global model
+    global collection
+    global graph
+
+    print("\nLoading support assistant...")
+
+    try:
+
+        from embedding import load_and_embed_documents
+        from graph import build_graph
+
+        model, collection = (
+            load_and_embed_documents()
+        )
+
+        graph = build_graph(
+            collection,
+            model
+        )
+
+        print("Support assistant is ready.")
+
+    except Exception as error:
+
+        print(
+            f"Could not load support assistant: {error}"
+        )
 
 
 @app.get("/")
@@ -67,46 +80,45 @@ async def root():
     }
 
 
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health")
 async def health():
 
-    if graph is not None:
-        return HealthResponse(
-            status="ok",
-            message="Support assistant is ready"
-        )
+    if graph is None:
 
-    return HealthResponse(
-        status="degraded",
-        message="Support assistant is not loaded"
-    )
+        return {
+            "status": "degraded",
+            "message": "Support assistant is not loaded"
+        }
 
-
-@app.get("/test")
-async def test():
-
-    return {"message": "API is working"}
+    return {
+        "status": "ok",
+        "message": "Support assistant is ready"
+    }
 
 
-@app.post("/ask", response_model=AnswerSchema)
+@app.post(
+    "/ask",
+    response_model=AnswerSchema
+)
 async def ask(request: QueryRequest):
 
     if graph is None:
+
         raise HTTPException(
             status_code=503,
             detail="Support assistant is not loaded"
         )
 
-    try:
+    state = {
+        "query": request.query,
+        "intent": "",
+        "sources": [],
+        "answer": "",
+        "confidence": 0.0,
+        "retrieved_chunks": []
+    }
 
-        state = {
-            "query": request.query,
-            "intent": "",
-            "sources": [],
-            "answer": "",
-            "confidence": 0.0,
-            "retrieved_chunks": []
-        }
+    try:
 
         result = graph.invoke(state)
 
@@ -116,40 +128,23 @@ async def ask(request: QueryRequest):
             confidence=result["confidence"]
         )
 
-    except Exception as e:
+    except Exception as error:
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail=str(error)
         )
-
-
-def find_available_port():
-
-    for port in [7860, 7861, 7862, 8000, 8080]:
-
-        sock = socket.socket()
-
-        try:
-            sock.bind(("127.0.0.1", port))
-            sock.close()
-            return port
-
-        except OSError:
-            sock.close()
-
-    return 7860
 
 
 if __name__ == "__main__":
 
-    port = find_available_port()
-
-    print(f"\nStarting server on http://127.0.0.1:{port}")
-    print(f"API docs: http://127.0.0.1:{port}/docs")
+    print(
+        "\nStarting server at "
+        "http://127.0.0.1:7860"
+    )
 
     uvicorn.run(
         app,
         host="127.0.0.1",
-        port=port
+        port=7860
     )
