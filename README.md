@@ -16,6 +16,3 @@ Install the dependencies with:
 
 bash
 pip install -r requirements.txt
-
-
-4ecde7
