@@ -106,7 +106,6 @@ python test_assistant.py
 Test the API:
 
 python test_api.py
-└── support_assistant/
 
 
 
