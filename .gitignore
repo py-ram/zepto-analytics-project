@@ -1,26 +1,15 @@
-# Python
 __pycache__/
 *.py[cod]
-*.pyo
 
-# Virtual environments
 .venv/
 venv/
-env/
 
-# Jupyter
-.ipynb_checkpoints/
-
-# Environment files
 .env
-*.env
 
 # Generated databases
+db/
 *.sqlite
 *.sqlite3
-db/
-chroma_db/
 
-# OS files
-.DS_Store
-Thumbs.db
+# Generated model/cache files
+.cache/
