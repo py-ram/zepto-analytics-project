@@ -311,15 +311,15 @@ def run_models():
         index=False
     )
 
-    # Save the Random Forest pipeline
-    joblib.dump(
-        models["Random Forest"],
-        "best_pipeline.joblib"
-    )
-
-    print("\nSaved Random Forest model to best_pipeline.joblib")
-
+    # Save the best model (Random Forest) for future use
+    best_model_name = comparison.loc[
+    comparison["ROC AUC"].idxmax(),
+    "Model"
+]
+    best_model = models[best_model_name]
+    joblib.dump(best_model, "best_model.pkl")
     return comparison
+
 
 
 if __name__ == "__main__":
