@@ -18,7 +18,7 @@ bash
 pip install -r requirements.txt
 
 
-**##1. Data Pipeline**
+**1. Data Pipeline**
 
 #The data pipeline collects book information from Books to Scrape, cleans the data and stores it in a SQLite database.
 
@@ -41,7 +41,7 @@ scrape_books.py - Scrapes book information
 database_setup.py - Cleans the data and creates the SQLite database
 queries.py - Runs SQL queries and compares SQL results with Pandas
 
-**##2. Analytics**
+**2. Analytics**
 
 The analytics module uses the Titanic dataset for exploratory analysis and classification modelling.
 
