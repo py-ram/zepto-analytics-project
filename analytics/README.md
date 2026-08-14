@@ -2,15 +2,17 @@
 
 ## Overview
 
-This module uses the Titanic dataset to perform exploratory data analysis and basic machine learning.
+This module uses the Titanic dataset for exploratory data analysis and basic machine learning.
 
 The analysis covers:
+
 - Data cleaning
 - Missing value handling
 - Univariate analysis
 - Bivariate analysis
 - Correlation analysis
 - Multivariate analysis
+- Outlier detection
 - Feature standardization
 - Classification models
 
@@ -18,24 +20,17 @@ The analysis covers:
 
 ### `01_eda.py`
 
-Performs the main exploratory data analysis.
+Performs exploratory data analysis on the Titanic dataset.
 
 It includes:
+
 - Missing value analysis
 - Age and fare distributions
-- Outlier detection using IQR
+- IQR-based outlier detection
 - Survival analysis by gender and passenger class
-- Correlation heatmap
+- Correlation analysis
 - Family size analysis
 - Standardization of age and fare
-
-
-Important: your output files are being saved to the current directory
-**
-For example:
-
-```python
-plt.savefig("univariate_plots.png")
 
 ### `02_modeling.py`
 
@@ -44,19 +39,23 @@ Builds classification models to predict passenger survival.
 The models used are:
 
 - Logistic Regression
+- Decision Tree
 - Random Forest
 
 The models are compared using:
+
 - Accuracy
 - Precision
 - Recall
 - F1 Score
+- ROC AUC
 
-A confusion matrix is also generated for each model.
+Confusion matrices and ROC curves are also generated.
 
 ## How to Run
 
-Install the required packages:
+From this folder:
 
 ```bash
-pip install -r ../requirements.txt
+python 01_eda.py
+python 02_modeling.py
